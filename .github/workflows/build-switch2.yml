@@ -1,4 +1,4 @@
-name: Build Switch 2 NRO
+name: Build Switch 1 & Switch 2 NRO
 
 on:
   push:
@@ -7,11 +7,58 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 defaults:
   run:
     shell: bash
 
 jobs:
+  build-switch1:
+    name: Switch 1 (libnx)
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:20260219
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify or install Switch 1 portlibs
+        run: |
+          set -euo pipefail
+          if [ ! -f /opt/devkitpro/portlibs/switch/lib/libmpv.a ]; then
+            dkp-pacman -R --noconfirm switch-tinyxml2 || true
+            for attempt in 1 2 3 4; do
+              if dkp-pacman -Sy --noconfirm && dkp-pacman -S --needed --noconfirm \
+                switch-sdl2 \
+                switch-sdl2_ttf \
+                switch-sdl2_image \
+                switch-curl \
+                switch-libmpv \
+                switch-pkg-config; then
+                break
+              fi
+              sleep $((attempt * 10))
+            done
+          fi
+          test -f /opt/devkitpro/portlibs/switch/lib/libSDL2.a
+          test -f /opt/devkitpro/portlibs/switch/lib/libmpv.a
+
+      - name: Build StremNX for Nintendo Switch 1
+        run: |
+          make -j"$(nproc)"
+          cp -f stremnx.nro stremnx-switch1.nro
+
+      - name: Upload Switch 1 NRO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stremnx-switch1-nro
+          path: |
+            stremnx-switch1.nro
+          if-no-files-found: error
+
   build-switch2:
     name: Switch 2 (libounce + OunceVK)
     runs-on: ubuntu-latest
@@ -81,14 +128,39 @@ jobs:
         run: |
           chmod +x scripts/build-switch2.sh
           bash scripts/build-switch2.sh
-          cp -f stremnx.nro StremNX2-switch2.nro
+          cp -f stremnx.nro stremnx-switch2.nro
 
       - name: Upload Switch 2 NRO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: StremNX2-switch2-nro
+          name: stremnx-switch2-nro
           path: |
             stremnx.nro
-            StremNX2-switch2.nro
+            stremnx-switch2.nro
             build-switch2/stremnx.map
           if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release (Switch 1 + Switch 2)
+    needs: [ build-switch1, build-switch2 ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Switch 1 NRO
+        uses: actions/download-artifact@v4
+        with:
+          name: stremnx-switch1-nro
+          path: release-assets
+
+      - name: Download Switch 2 NRO
+        uses: actions/download-artifact@v4
+        with:
+          name: stremnx-switch2-nro
+          path: release-assets
+
+      - name: Publish Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/stremnx-switch2.nro
+            release-assets/stremnx-switch1.nro

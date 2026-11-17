@@ -148,10 +148,25 @@ UpdateInfo checkForUpdate() {
     info.version = (!tag.empty() && (tag[0] == 'v' || tag[0] == 'V')) ? tag.substr(1) : tag;
     info.notes = j["body"].str();
     for (auto& a : j["assets"].items()) {
-        if (!endsWithNro(a["name"].str())) continue;
-        info.nroUrl = a["browser_download_url"].str();
-        info.size = (int64_t)a["size"].num();
-        break;
+        std::string name = a["name"].str();
+        if (!endsWithNro(name)) continue;
+        std::string low = name;
+        for (auto& c : low) c = (char)tolower((unsigned char)c);
+#ifdef __SWITCH2__
+        if (low.find("switch1") != std::string::npos) continue;
+        if (info.nroUrl.empty() || low.find("switch2") != std::string::npos) {
+            info.nroUrl = a["browser_download_url"].str();
+            info.size = (int64_t)a["size"].num();
+            if (low.find("switch2") != std::string::npos) break;
+        }
+#else
+        if (low.find("switch2") != std::string::npos) continue;
+        if (info.nroUrl.empty() || low.find("switch1") != std::string::npos) {
+            info.nroUrl = a["browser_download_url"].str();
+            info.size = (int64_t)a["size"].num();
+            if (low.find("switch1") != std::string::npos) break;
+        }
+#endif
     }
     info.available = !info.version.empty() && !info.nroUrl.empty() && compareVersions(info.version, APP_VERSION) > 0;
     logMsg("update: latest release %s (running %s)%s", info.version.c_str(), APP_VERSION,
