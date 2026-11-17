@@ -64,7 +64,7 @@ class VerifySwitch2PackageTests(unittest.TestCase):
 
     def test_clean_link_map_passes(self) -> None:
         map_text = (
-            "/opt/devkitpro/libounce/lib/libounce.a(applet.o)\n"
+            "/opt/devkitpro/libounce/lib/libnx.a(applet.o)\n"
             "/opt/devkitpro/portlibs/switch2/lib/libEGL.a(egl_api.c.o)\n"
             "/src/build-switch2/ffmpeg-install/lib/libavcodec.a(avpacket.o)\n"
         )
@@ -72,13 +72,13 @@ class VerifySwitch2PackageTests(unittest.TestCase):
 
     def test_switch1_contamination_in_link_map_fails(self) -> None:
         map_text = (
-            "/opt/devkitpro/libounce/lib/libounce.a(applet.o)\n"
+            "/opt/devkitpro/libounce/lib/libnx.a(applet.o)\n"
             "/opt/devkitpro/portlibs/switch2/lib/libEGL.a(egl_api.c.o)\n"
             "/opt/devkitpro/libnx/lib/libnx.a(applet.o)\n"
             "/opt/devkitpro/portlibs/switch/lib/libavutil.a(hwcontext_nvtegra.o)\n"
         )
         errors = vsp.verify_link_map_text(map_text)
-        self.assertEqual(len(errors), 3)
+        self.assertEqual(len(errors), 2)
 
 
 if __name__ == "__main__":

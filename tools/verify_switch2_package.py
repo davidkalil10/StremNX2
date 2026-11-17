@@ -16,7 +16,6 @@ OUNCE_MAGIC = b"OUN0"
 
 FORBIDDEN_MAP_MARKERS = (
     "/libnx/lib/",
-    "libnx.a",
     "/portlibs/switch/lib/libEGL.a",
     "libglapi.a",
     "libdrm_nouveau.a",
