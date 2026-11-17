@@ -1,0 +1,114 @@
+#---------------------------------------------------------------------------------
+# Nintendo Switch 2 build (devkitA64 + ounce-devkit / libounce + OunceVK).
+#---------------------------------------------------------------------------------
+.SUFFIXES:
+
+ifeq ($(strip $(DEVKITPRO)),)
+$(error "DEVKITPRO not set - build inside devkitpro/devkita64 with ounce-devkit installed")
+endif
+
+include $(DEVKITPRO)/libounce/switch2_rules
+
+STREMNX_ROOT := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+SWITCH2_FFMPEG_DIR ?= $(STREMNX_ROOT)build-switch2/ffmpeg-install
+
+APP_TITLE   := StremNX (Switch 2)
+APP_AUTHOR  := denpingus / David Kalil Braga
+APP_VERSION := $(shell awk '/^APP_VERSION/{print $$3}' $(STREMNX_ROOT)Makefile)
+ifeq ($(strip $(APP_VERSION)),)
+APP_VERSION := 1.0.0
+endif
+APP_ICON    := icon.jpg
+
+TARGET   := stremnx
+BUILD    := build-switch2
+SOURCES  := source
+INCLUDES := source
+ROMFS    := romfs
+
+PKGCONF := $(DEVKITPRO)/portlibs/switch2/bin/aarch64-none-elf-pkg-config
+PKGS    := mpv SDL2_ttf SDL2_image sdl2 libcurl
+
+ARCH := $(SWITCH2_CPU) -mtp=soft -ftls-model=local-exec -fPIE
+
+CFLAGS := -g -Wall -O2 -ffunction-sections $(ARCH) $(INCLUDE) \
+          -D__SWITCH__ -D__SWITCH2__ -DAPP_VERSION=\"$(APP_VERSION)\" \
+          $(shell $(PKGCONF) --cflags $(PKGS))
+
+CXXFLAGS := $(CFLAGS) -std=gnu++17
+ASFLAGS  := -g $(ARCH)
+LDFLAGS   = -specs=$(DEVKITPRO)/libounce/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+
+RAW_PKG_LIBS := $(shell $(PKGCONF) --libs --static $(PKGS))
+FILTERED_PKG_LIBS := $(filter-out %/libnx/lib %/libnx/lib/libnx.a -L%/portlibs/switch/lib -lEGL -lglapi -ldrm_nouveau -lnx -lavfilter -lavformat -lavcodec -lswscale -lswresample -lavutil,$(RAW_PKG_LIBS))
+
+FFMPEG_STATIC_LIBS := \
+	$(SWITCH2_FFMPEG_DIR)/lib/libavfilter.a \
+	$(SWITCH2_FFMPEG_DIR)/lib/libavformat.a \
+	$(SWITCH2_FFMPEG_DIR)/lib/libavcodec.a \
+	$(SWITCH2_FFMPEG_DIR)/lib/libswscale.a \
+	$(SWITCH2_FFMPEG_DIR)/lib/libswresample.a \
+	$(SWITCH2_FFMPEG_DIR)/lib/libavutil.a
+
+LIBS := $(FFMPEG_STATIC_LIBS) \
+        $(FILTERED_PKG_LIBS) \
+        $(FFMPEG_STATIC_LIBS) \
+        -lEGL -lnx -lm
+
+LIBDIRS := $(SWITCH2_FFMPEG_DIR) $(PORTLIBS_SWITCH2) $(PORTLIBS) $(LIBNX)
+
+#---------------------------------------------------------------------------------
+ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+
+export OUTPUT  := $(CURDIR)/$(TARGET)
+export TOPDIR  := $(CURDIR)
+export VPATH   := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
+export DEPSDIR := $(CURDIR)/$(BUILD)
+
+CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+
+export LD      := $(CXX)
+export OFILES  := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
+export INCLUDE := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+                  -I$(SWITCH2_FFMPEG_DIR)/include \
+                  -I$(PORTLIBS_SWITCH2)/include \
+                  $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+                  -I$(CURDIR)/$(BUILD)
+export LIBPATHS := -L$(SWITCH2_FFMPEG_DIR)/lib -L$(PORTLIBS_SWITCH2)/lib $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+ifneq ($(strip $(APP_ICON)),)
+export NROFLAGS += --icon=$(CURDIR)/$(APP_ICON) --nacp=$(CURDIR)/$(TARGET).nacp
+endif
+
+ifneq ($(strip $(ROMFS)),)
+export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
+endif
+
+.PHONY: $(BUILD) clean all
+
+all: $(BUILD)
+
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile.switch2
+
+clean:
+	@echo clean ...
+	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+
+#---------------------------------------------------------------------------------
+else
+
+DEPENDS := $(OFILES:.o=.d)
+
+all: $(OUTPUT).nro
+
+$(OUTPUT).nro: $(OUTPUT).elf $(OUTPUT).nacp
+
+$(OUTPUT).elf: $(OFILES)
+
+-include $(DEPENDS)
+
+endif

@@ -1,0 +1,106 @@
+name: Build Switch 2 NRO
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-switch2:
+    name: Switch 2 (libounce + OunceVK)
+    runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkita64:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Switch 2 FFmpeg 7.1 build
+        uses: actions/cache@v4
+        with:
+          path: build-switch2/ffmpeg-install
+          key: switch2-ffmpeg-7.1-ounce-20261115b-v1
+
+      - name: Install Switch portlibs and ounce-devkit (Switch 2 SDK)
+        env:
+          OUNCE_DEVKIT_TAG: "20261115b"
+          OUNCE_DEVKIT_COMMIT: "0f38ba80d7ee768c5749278f127749d14ece2036"
+        run: |
+          set -euo pipefail
+          dkp-pacman -Rdd --noconfirm switch-tinyxml2 2>/dev/null || true
+
+          sync_ok=0
+          for attempt in 1 2 3 4; do
+            echo "Synchronizing devkitPro package databases (attempt ${attempt}/4)..."
+            if dkp-pacman -Syy --noconfirm; then
+              sync_ok=1
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          test "${sync_ok}" -eq 1
+
+          pkg_ok=0
+          for attempt in 1 2 3 4; do
+            echo "Installing Switch portlibs (attempt ${attempt}/4)..."
+            if dkp-pacman -S --needed --noconfirm \
+              switch-sdl2 \
+              switch-sdl2_ttf \
+              switch-sdl2_image \
+              switch-curl \
+              switch-libmpv \
+              switch-pkg-config; then
+              pkg_ok=1
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          test "${pkg_ok}" -eq 1
+
+          mkdir -p /tmp/ounce-pkgs
+          cd /tmp/ounce-pkgs
+          BASE_URL="https://github.com/ouncebrew/ounce-devkit/releases/download/${OUNCE_DEVKIT_TAG}"
+          for pkg in \
+            "libounce-0.4.0-1-any.pkg.tar.xz" \
+            "ounce-tools-1.15.22-1-any.pkg.tar.xz" \
+            "ounce-pkg-config-0.28-1-any.pkg.tar.xz" \
+            "OunceVK-2026.11.15-1-any.pkg.tar.zst"; do
+            curl -fL --retry 4 --retry-delay 3 -O "${BASE_URL}/${pkg}"
+          done
+
+          dkp-pacman -U --noconfirm --overwrite '*' \
+            libounce-0.4.0-1-any.pkg.tar.xz \
+            ounce-tools-1.15.22-1-any.pkg.tar.xz \
+            ounce-pkg-config-0.28-1-any.pkg.tar.xz \
+            OunceVK-2026.11.15-1-any.pkg.tar.zst
+
+          git clone https://github.com/ouncebrew/ounce-devkit.git /tmp/ounce-devkit-src
+          git -C /tmp/ounce-devkit-src checkout "${OUNCE_DEVKIT_COMMIT}"
+          cp -f /tmp/ounce-devkit-src/libounce/switch2_rules /opt/devkitpro/libounce/switch2_rules
+          cp -f /tmp/ounce-devkit-src/libounce/switch.specs /opt/devkitpro/libounce/switch.specs
+
+      - name: Run Switch 2 package verifier unit tests
+        run: python3 tests/test_switch2_package.py
+
+      - name: Build and verify StremNX2 for Nintendo Switch 2
+        run: |
+          chmod +x scripts/build-switch2.sh
+          bash scripts/build-switch2.sh
+          cp -f stremnx.nro StremNX2-switch2.nro
+
+      - name: Upload Switch 2 NRO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StremNX2-switch2-nro
+          path: |
+            stremnx.nro
+            StremNX2-switch2.nro
+            build-switch2/stremnx.map
+          if-no-files-found: error

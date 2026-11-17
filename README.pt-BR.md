@@ -1,6 +1,9 @@
-# StremNX
+# StremNX2 (Port para Nintendo Switch 2)
 
-**Cliente Stremio não oficial para Nintendo Switch (homebrew).**
+**Cliente Stremio não oficial para Nintendo Switch 2 e Nintendo Switch (homebrew).**
+
+> **Port para Nintendo Switch 2 (`ounce-devkit` / `libounce` + `OunceVK`):** Adaptado e mantido por **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).
+> Agradecimentos especiais a **[denpingus](https://github.com/denpingus)**, autor do projeto original **[StremNX](https://github.com/denpingus/StremNX)**.
 
 > [!IMPORTANT]
 > O StremNX é um projeto independente da comunidade. Ele **não tem ligação, aprovação nem vínculo com o Stremio**
@@ -194,3 +197,16 @@ Sem login, o app usa só o Cinemeta (catálogo) e os addons listados em `addons`
 - **Decodificação por hardware:** depende de como o `switch-libmpv` foi compilado. Sem hwdec, 1080p H.264 pode engasgar e HEVC/4K não roda. A solução é usar o FFmpeg com backend nvtegra (fork do averne, usado pelo Switchfin).
 - Falta "Continuar assistindo" / sincronização de progresso com a conta (`datastoreGet`/`datastorePut` da API).
 - Ícone: coloque um `icon.jpg` 256x256 na raiz do projeto.
+
+## Compilando para Nintendo Switch 2 (`libounce` + `OunceVK`)
+
+```bash
+bash scripts/build-switch2.sh
+```
+
+O script compila o FFmpeg 7.1 limpo para Switch 2 (`--disable-nvtegra`), gera o `stremnx.nro` com cabeçalho `MOD0`/`OUN0` (Cortex-A78C) e executa o verificador `tools/verify_switch2_package.py`.
+
+## Créditos e Agradecimentos
+
+- **Projeto Original (`StremNX`)**: Criado por **[denpingus](https://github.com/denpingus)** ([denpingus/StremNX](https://github.com/denpingus/StremNX)).
+- **Port para Nintendo Switch 2 (`StremNX2`)**: Adaptado para `ounce-devkit` (`libounce` + `OunceVK`, Cortex-A78C, FFmpeg 7.1 limpo para Switch 2 + pipeline `libmpv` GLES 3.0) por **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).

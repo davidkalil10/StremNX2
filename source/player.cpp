@@ -28,6 +28,14 @@ void* getProcAddress(void*, const char* name) {
 
 SDL_GLContext createContext(SDL_Window* win) {
     SDL_GL_ResetAttributes();
+#ifdef __SWITCH2__
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GLContext esCtx = SDL_GL_CreateContext(win);
+    if (esCtx) return esCtx;
+    logMsg("GLES 3.0 failed (%s), trying GL 3.3 core", SDL_GetError());
+#endif
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -403,7 +411,12 @@ PlayResult runPlayer(App& app, const std::string& url, const PlayContext& ctx, d
         return res;
     }
     setOpt(mpv, "vo", "libmpv");
+#ifdef __SWITCH2__
+    setOpt(mpv, "hwdec", "no");
+    setOpt(mpv, "vd-lavc-threads", "4");
+#else
     setOpt(mpv, "hwdec", "auto");
+#endif
     setOpt(mpv, "cache", "yes");
     setOpt(mpv, "demuxer-max-bytes", "48MiB");
     setOpt(mpv, "demuxer-max-back-bytes", "8MiB");
@@ -987,6 +1000,7 @@ PlayResult runPlayer(App& app, const std::string& url, const PlayContext& ctx, d
     mpv_render_context_free(rctx);
     watchBeat(WatchMain, "player: shutting down mpv");
     mpv_terminate_destroy(mpv);
+    SDL_GL_MakeCurrent(win, nullptr);
     SDL_GL_DeleteContext(gl);
     return res;
 }

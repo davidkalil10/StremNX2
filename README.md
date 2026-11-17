@@ -1,6 +1,9 @@
-# StremNX
+# StremNX2 (Nintendo Switch 2 Port)
 
-**An unofficial Stremio client for the Nintendo Switch (homebrew).**
+**An unofficial Stremio client for the Nintendo Switch 2 and Nintendo Switch (homebrew).**
+
+> **Nintendo Switch 2 Port (`ounce-devkit` / `libounce` + `OunceVK`):** Adapted and maintained by **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).
+> Special thanks to **[denpingus](https://github.com/denpingus)**, creator of the original **[StremNX](https://github.com/denpingus/StremNX)** project.
 
 <p align="center"><img src="icon.jpg" width="160" alt="StremNX icon"></p>
 
@@ -97,6 +100,17 @@ StremNX ships with no torrent or piracy addons.
 
 ## Building
 
+### Nintendo Switch 2 (`libounce` + `OunceVK`)
+
+1. Install [devkitPro](https://devkitpro.org/wiki/Getting_Started) (`devkitA64`) and [ounce-devkit](https://github.com/ouncebrew/ounce-devkit) (`libounce`, `ounce-tools`, `ounce-pkg-config`, `OunceVK`).
+2. Run the Switch 2 build script (which compiles a clean Switch 2 FFmpeg 7.1 with `--disable-nvtegra`, links `libmpv` + `OunceVK` + `libounce`, and verifies the resulting `.nro` and linker map):
+   ```bash
+   bash scripts/build-switch2.sh
+   ```
+   The result is `stremnx.nro` (with `MOD0`/`OUN0` Switch 2 startup header).
+
+### Nintendo Switch 1 (`libnx`)
+
 1. Install [devkitPro](https://devkitpro.org/wiki/Getting_Started) with **Switch Development**.
 2. Install the libraries:
    ```bash
@@ -109,6 +123,11 @@ StremNX ships with no torrent or piracy addons.
    The result is `stremnx.nro`.
 
 For quick testing, start the Homebrew Menu's netloader (**Y**) and run `nxlink -s stremnx.nro` from the PC.
+
+## Credits & Acknowledgments
+
+- **Original Project (`StremNX`)**: Created by **[denpingus](https://github.com/denpingus)** ([denpingus/StremNX](https://github.com/denpingus/StremNX)).
+- **Nintendo Switch 2 Port (`StremNX2`)**: Adapted to `ounce-devkit` (`libounce` + `OunceVK`, Cortex-A78C, clean Switch 2 FFmpeg 7.1 + `libmpv` GLES 3.0 pipeline) by **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).
 
 ## Project layout
 

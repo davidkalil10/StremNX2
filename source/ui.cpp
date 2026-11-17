@@ -115,6 +115,7 @@ void Gfx::makeGradients() {
 
 bool Gfx::restoreRenderer() {
     SDL_GL_ResetAttributes();
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengles2");
     r = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!r) {
         logMsg("SDL_CreateRenderer failed: %s", SDL_GetError());

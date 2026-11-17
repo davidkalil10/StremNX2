@@ -12,7 +12,13 @@
 #define APP_VERSION "0.0.0"
 #endif
 
+#ifndef UPDATE_REPO
+#ifdef __SWITCH2__
+#define UPDATE_REPO "davidkalil10/StremNX2"
+#else
 #define UPDATE_REPO "denpingus/StremNX"
+#endif
+#endif
 
 struct UpdateInfo {
     bool ok = false;         // the check worked
