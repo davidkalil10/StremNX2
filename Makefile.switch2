@@ -50,9 +50,11 @@ FFMPEG_STATIC_LIBS := \
 	$(SWITCH2_FFMPEG_DIR)/lib/libswresample.a \
 	$(SWITCH2_FFMPEG_DIR)/lib/libavutil.a
 
-LIBS := $(FFMPEG_STATIC_LIBS) \
-        $(FILTERED_PKG_LIBS) \
+LIBS := -Wl,--start-group \
         $(FFMPEG_STATIC_LIBS) \
+        $(FILTERED_PKG_LIBS) \
+        -lpostproc -ldav1d -lz -lbz2 \
+        -Wl,--end-group \
         -lEGL -lnx -lm
 
 LIBDIRS := $(SWITCH2_FFMPEG_DIR) $(PORTLIBS_SWITCH2) $(PORTLIBS) $(LIBNX)
