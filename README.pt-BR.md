@@ -1,5 +1,7 @@
 # StremNX2 (Port para Nintendo Switch 2)
 
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20this%20project-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/davidkalil10)
+
 **Cliente Stremio não oficial para Nintendo Switch 2 e Nintendo Switch (homebrew).**
 
 > **Port para Nintendo Switch 2 (`ounce-devkit` / `libounce` + `OunceVK`):** Adaptado e mantido por **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).
@@ -210,3 +212,11 @@ O script compila o FFmpeg 7.1 limpo para Switch 2 (`--disable-nvtegra`), gera o 
 
 - **Projeto Original (`StremNX`)**: Criado por **[denpingus](https://github.com/denpingus)** ([denpingus/StremNX](https://github.com/denpingus/StremNX)).
 - **Port para Nintendo Switch 2 (`StremNX2`)**: Adaptado para `ounce-devkit` (`libounce` + `OunceVK`, Cortex-A78C, FFmpeg 7.1 limpo para Switch 2 + pipeline `libmpv` GLES 3.0) por **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).
+
+## Support
+
+Se o **StremNX2** e nossos ports para Nintendo Switch 2 forem úteis para você, considere apoiar a manutenção do projeto no Ko-fi:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/davidkalil10)
+
+👉 **[https://ko-fi.com/davidkalil10](https://ko-fi.com/davidkalil10)**

@@ -1,5 +1,7 @@
 # StremNX2 (Nintendo Switch 2 Port)
 
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20this%20project-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/davidkalil10)
+
 **An unofficial Stremio client for the Nintendo Switch 2 and Nintendo Switch (homebrew).**
 
 > **Nintendo Switch 2 Port (`ounce-devkit` / `libounce` + `OunceVK`):** Adapted and maintained by **David Kalil Braga** ([@davidkalil10](https://github.com/davidkalil10)).
@@ -152,3 +154,11 @@ It includes or links third-party software listed in [THIRD_PARTY.md](THIRD_PARTY
 
 This software is provided "as is", without warranty of any kind. The authors are not responsible for how it is used,
 for the content provided by third-party addons, or for any consequences of using it.
+
+## Support
+
+If you find **StremNX2** and our Nintendo Switch 2 homebrew ports useful, consider buying me a coffee to support continued development and maintenance:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/davidkalil10)
+
+👉 **[https://ko-fi.com/davidkalil10](https://ko-fi.com/davidkalil10)**
